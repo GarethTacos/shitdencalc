@@ -1,6 +1,5 @@
 {
   "version":"1.10",
-  "minor-version": "01",
   "friendly-name":"puffy",
   "build-type":"noaudio",
   "platform":"linux64",
