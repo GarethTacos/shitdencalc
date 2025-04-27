@@ -2,7 +2,7 @@
 magic sauce calculator with bgm, json update mechanism and upcoming TUI/GUI (possibly in Rust)
 
 > [!NOTE]  
-> main.c has the audio imports and func commented out for faster compiles in debugging
+> main.c has the audio imports and func commented out for faster compiles in debugging\
 > if you want audio it's as simple as uncommenting them :D
 
 ## about the files
