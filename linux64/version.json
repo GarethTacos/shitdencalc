@@ -1,0 +1,7 @@
+{
+  "version":"1.10",
+  "friendly-name":"puffy",
+  "build-type":"noaudio",
+  "platform":"linux64",
+  "pull-from": "https://raw.githubusercontent.com/GarethTacos/shitdencalc/refs/heads/main/linux64"
+}
