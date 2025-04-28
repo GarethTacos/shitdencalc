@@ -1,9 +1,11 @@
 # shitdencalc
 magic sauce calculator with bgm, json update mechanism and upcoming TUI/GUI (possibly in Rust)
+currently testing json update mechanism, will push in 1.1.1 (first patch! yay)
 
 > [!NOTE]  
-> main.c has the audio imports and func commented out for faster compiles in debugging\
-> if you want audio it's as simple as uncommenting them :D
+> changed the structure to linux64 for linux releases and msvc for windows releases.\
+> also there is now noaudio builds and vanilla builds.\
+> however i need to rework the structure to be more modular.
 
 ## about the files
 - gru.flac is short audio to test the audio.c

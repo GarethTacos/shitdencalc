@@ -1,0 +1,13 @@
+rework audio architecture for vanilla and noaudio so it is simpler to separate
+possibly have
+- core.c (core program)
+- input.c (handles input)
+- audio.c (inits the core program and is entrypoint so can handle mallocs so no leak)
+- misc.c (stays the same)
+and then merge the updater project into the main project.
+we keep core.c separate so possibly can prepare for the RUST TUI phase.
+audio.c switches from cubeb+dr_flac to something safer like rodeo.
+ratatui is used instead of the simple fgets interface.
+tokio + json processing library like serde or maybe curl bindings for rust can be used instead of interfacing curl from c.
+but keep the core C and GMP because yes.
+or if you want simple, just keep everything except for the input.c and audio.c (i fear my audio.c because it had data leaks so have to rework shit)
