@@ -23,7 +23,6 @@
         ];
 
         shellHook = ''
-          echo "something"
         '';
       };
     };
