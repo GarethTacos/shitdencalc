@@ -3,8 +3,8 @@ magic sauce calculator with bgm, json update mechanism and upcoming TUI/GUI (pos
 currently testing json update mechanism, will push in 1.1.1 (first patch! yay)
 
 > [!NOTE]  
-> changed the structure to linux64 for linux releases and wasm for web releases.\
-> windows cross compilation isn't working out for me hehe...\
+> nevermind linux64 only because lazy.\
+> school is tiring and wasm and windows cross compilation isn't working out for me hehe...\
 > also there is now noaudio builds and vanilla builds.\
 > however i need to rework the structure to be more modular.
 

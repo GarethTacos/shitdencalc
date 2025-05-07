@@ -1,7 +1,0 @@
-going to port to web with emscripten but might have to find alternatives to GMP
-also no cubeb and dr_flac because it's cursed to embed cubeb (firefox's audio engine as of now) 
-into a browser that already has an audio engine.
-so at worse i will rely on JS audio libraries and arbitrary precision libraries.
-also the wasm build will not need the updater component as it is literally just a web app.
-<SIGN_OFF>
-GarethTacos :3

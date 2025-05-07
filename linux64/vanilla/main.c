@@ -171,6 +171,7 @@ void opselect(){
 	}
 	if (strcmp(skibidi, "exit") == 0){
 	    // break loop and exit
+	    clearmem_audio();
 	    exit(1);
 	}
 	if (strcmp(skibidi, "clear") == 0){
