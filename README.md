@@ -10,12 +10,12 @@ currently testing json update mechanism, will push in 1.1.1 (first patch! yay)
 
 ## about the files
 - gru.flac is short audio to test the audio.c (Blue Archive OST 253)
-- audio.c and audio.h handle background audio via cubeb
-- misc.c and misc.h handles title and help
-- main.c does the mathing
+- audio.c and audio.h handle background audio via OpenAL Soft (not cubeb sorry forgor update)
+- misc.c and misc.h handles title and help texts
+- main.c does the mathing because ues
 - iamu_miku.flac is the audio shitden requested himself (I Nan Desu)
-- debug is just debug
-- compile.sh is the flags i use for clang
+- debug is just debug binary (linux64)
+- compile.sh is the flags i use for clang (important if you want deterministic output)
 
 ## And as per standard procedure... (Licensing)
 This project is licensed under the GPL-3.0-or-later.  
