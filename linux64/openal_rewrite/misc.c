@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/*
+ * misc.c — shitdencalc
+ * Copyright (c) 2025 GarethTacos
+ */
+// Joke license:
 // literally just prints title
 // copyright supershitman corporation 2025
 // title.c

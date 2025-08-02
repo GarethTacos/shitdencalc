@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/*
+ * main.c — supershitden calc
+ * Copyright (c) 2025 GarethTacos
+ */
+
 #include <stdio.h>
 #include "misc.h"
 #include <string.h>
@@ -5,29 +11,39 @@
 #include <gmp.h>
 #include "audio.h"
 #include "dr_flac.h"
-#include <pthread.h>
 #include <stdlib.h>
 #define PI 3.14159265358979323846
 // current state of project
 // cpp port cancelled because cmake is disgusting
 // now working on json parsing and updating
 // fhs soln possibly needed
-void tinput(char* buffer, size_t size){
-	if (fgets(buffer, size, stdin) != NULL){
-		size_t len = strlen(buffer);
-		// newline removal
-		if (len > 0 && buffer[len - 1] == '\n'){
-			buffer[len - 1] = '\0';
-		}
-	} else {
-		// erro handling (input err or EOF)
-		buffer[0] = '\0';
-	}
+// OPENAL REWRITE BABEY!!!!!!
+// also cleaner interfacing.
+shitaudio bgm;
+void tinput(char *buffer, size_t size) {
+    if (fgets(buffer, size, stdin) != NULL) {
+        size_t len = strlen(buffer);
+
+        // If last char isn't newline, input was longer than buffer
+        if (len > 0 && buffer[len - 1] != '\n') {
+            int c;
+            // flush the rest of the line
+            while ((c = getchar()) != '\n' && c != EOF);
+        } else if (len > 0 && buffer[len - 1] == '\n') {
+            // strip newline
+            buffer[len - 1] = '\0';
+        }
+    } else {
+        // Handle EOF or error
+        buffer[0] = '\0';
+    }
 }
+
 void opselect(){
-	while (2<5){
+	char skibidi[64] = "";
+	while (strcmp(skibidi, "exit") != 0){
 	printf("select an operation for shitden to calculate or type 'help' for a list ");
-	char skibidi[10];
+	fflush(stdout);
 	tinput(skibidi,sizeof(skibidi));
 	//printf("You entered: %s\n", skibidi);
 	// add func
@@ -163,7 +179,19 @@ void opselect(){
 	}
 	if (strcmp(skibidi, "exit") == 0){
 	    // break loop and exit
+	    shitaudio_stop(&bgm);
+	    shitaudio_destroy(&bgm);
 	    exit(1);
+	}
+	// problem was solved
+	// turns out it was a buffer issue
+	// bgm start pushed [10] to its limit which caused weird behaviour
+	// now skibidi is [64] so more headroom
+	if(strcmp(skibidi, "bgm start") == 0){
+		shitaudio_play_flac(&bgm,"iamu_miku.flac");
+	}
+	if(strcmp(skibidi, "bgm stop") == 0){
+		shitaudio_stop(&bgm);
 	}
 	if (strcmp(skibidi, "hmlala") == 0){
 		printf("\033[H\033[J");
@@ -171,7 +199,7 @@ void opselect(){
 	}
 	if (strcmp(skibidi, "exit") == 0){
 	    // break loop and exit
-	    clearmem_audio();
+	    //clearmem_audio();
 	    exit(1);
 	}
 	if (strcmp(skibidi, "clear") == 0){
@@ -185,18 +213,11 @@ void opselect(){
 	}
 }
 
-void* audio_thread() {
-    // cubeb
-    shitbgm();  // hypothetical function
-    return NULL;
-}
 
 int main(){
 	// init function
-	// start bgm
-	pthread_t thread;
-	pthread_create(&thread, NULL, audio_thread, NULL);
-
+	// init OpenAL
+	shitaudio_init(&bgm);
 	// Main thread can keep doing stuff
 	// (or wait for audio to finish, etc.)
 	printf("%s\n", title());
@@ -205,7 +226,6 @@ int main(){
 	printf("NOW WITH ARBITRARY-PRECISION ARITHMETIC\n");
 	printf("the best calculator ever because yes. (totally not ribbity)\n");
 	opselect();
-	pthread_join(thread, NULL);  // Wait for audio thread to finish
 	return 0;
 }
 

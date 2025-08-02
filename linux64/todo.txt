@@ -11,3 +11,6 @@ ratatui is used instead of the simple fgets interface.
 tokio + json processing library like serde or maybe curl bindings for rust can be used instead of interfacing curl from c.
 but keep the core C and GMP because yes.
 or if you want simple, just keep everything except for the input.c and audio.c (i fear my audio.c because it had data leaks so have to rework shit)
+[new text]:
+idk what i wanted there but i just used OpenAL and solved the problem
+and yeah I guess I have to work on the update mechanism now.

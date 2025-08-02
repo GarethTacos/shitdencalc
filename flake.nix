@@ -17,7 +17,7 @@
           clang
           valgrind
 	  json_c
-	  cubeb
+	  openal
 	  gmp
 	  curl.dev
         ];
@@ -27,4 +27,5 @@
       };
     };
 }
+
 
