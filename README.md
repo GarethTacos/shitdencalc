@@ -19,12 +19,13 @@ currently testing json update mechanism, will push in 1.1.1 (first patch! yay)
 - compile.sh is the flags i use for clang (important if you want deterministic output)
 
 ## Extra Notes:
-- I didn't make it loop because it would be annoying\ and I would have to play around with threads and cause unsafe behaviours again.
-- you can technically replace the iamu_miku.flac or modify the source code to play another flac.\ (I won't stop you because I don't care)
+- I didn't make it loop because it would be annoying and I would have to play around with threads and cause unsafe behaviours again.
+- you can technically replace the iamu_miku.flac or modify the source code to play another flac. (I won't stop you because I don't care)
 ## And as per standard procedure... (Licensing)
 This project is licensed under the GPL-3.0-or-later.  
 
 This program uses:
 - GMP, licensed under LGPL-3.0-or-later
 - OpenAL Soft, licensed under LGPL-2.0-or-later
+
 Their license texts are provided in LICENSES/.
