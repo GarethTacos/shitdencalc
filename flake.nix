@@ -20,6 +20,8 @@
 	  openal
 	  gmp
 	  curl.dev
+	  nodejs
+	  yarn
         ];
 
         shellHook = ''
