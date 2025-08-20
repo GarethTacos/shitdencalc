@@ -14,7 +14,7 @@ now just focused on making it easier to port to other platforms.
 
 ## about the files
 - gru.flac is short audio to test the audio.c (Blue Archive OST 253)
-- audio.c and audio.h handle background audio via OpenAL Soft (not cubeb sorry forgor update)
+- audio.c and audio.h handle background audio via OpenAL Soft and Dr Flac (not cubeb sorry forgor update)
 - misc.c and misc.h handles title and help texts
 - main.c does the mathing because ues
 - iamu_miku.flac is the audio shitden requested himself (I Nan Desu)
@@ -30,5 +30,6 @@ This project is licensed under the GPL-3.0-or-later.
 This program uses:
 - GMP, licensed under LGPL-3.0-or-later
 - OpenAL Soft, licensed under LGPL-2.0-or-later
+- Dr Flac, licensed under Public Domain
 
 Their license texts are provided in LICENSES/.
