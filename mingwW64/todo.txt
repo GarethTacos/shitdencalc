@@ -1,0 +1,2 @@
+no update mechanism because too complex
+will work on windows builds via mingw64 or smth

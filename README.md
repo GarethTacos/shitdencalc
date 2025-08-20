@@ -1,8 +1,11 @@
 # shitdencalc
 magic sauce calculator with bgm, json update mechanism (cancelled TUI because not enough energy)\
-currently testing json update mechanism, will push in 1.1.1 (first patch! yay)
+no JSON update mechanism because too complex.\
+now just focused on making it easier to port to other platforms.
 
-> [!NOTE]  
+> [!NOTE]
+> Opus switch postponed. FLAC was more reliable and did not leak memory.\
+> Opus leaked 30MB because of Rushed implementation. Will completely swicth to opus once stabilised.\
 > May consider Libtommath because it can go WASM\
 > Or just rewrite in JS with the same principles (but it can be tiring)\
 > No more noaudio builds because too lazy to segment my code properly\

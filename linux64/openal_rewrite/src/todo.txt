@@ -1,0 +1,3 @@
+clean up ugly main.c
+maybe segment it into math.c for handling
+
