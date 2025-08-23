@@ -166,7 +166,7 @@ void opselect(){
 	// bgm start pushed [10] to its limit which caused weird behaviour
 	// now skibidi is [64] so more headroom
 	if(strcmp(skibidi, "bgm start") == 0){
-		shitaudio_play_flac(&bgm,"iamu_miku.flac");
+		if(shitaudio_opus_genpcm(&bgm,"hachi2hoshimi.ogg") == 0) shitaudio_play_pcm(&bgm);
 	}
 	if(strcmp(skibidi, "bgm stop") == 0){
 		shitaudio_stop(&bgm);
@@ -183,7 +183,7 @@ void opselect(){
 	}
 	if (strcmp(skibidi, "help") == 0){
 	    // clear screen
-	    printf(help());
+	    printf("%s",help());
 	}
 	}
 }

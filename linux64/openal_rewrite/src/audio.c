@@ -3,8 +3,8 @@
  * audio.c — shitdencalc
  * Copyright (c) 2025 GarethTacos
  */
-#define DR_FLAC_IMPLEMENTATION
-#include "dr_flac.h"
+//#define DR_FLAC_IMPLEMENTATION
+//#include "dr_flac.h"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <stdio.h>
@@ -81,65 +81,79 @@ void shitaudio_stop(shitaudio *a){
         a->buffer = 0;
     }
 }
-// wait until source stops playing
-void shitaudio_wait_uf(shitaudio *a) {
-    if (!a) return;
-
-    ALint state = 0;
-    do {
-        alGetSourcei(a->source, AL_SOURCE_STATE, &state);
-        usleep(100 * 1000);  // sleep 100ms
-    } while (state == AL_PLAYING);
-}
-
-// Load a FLAC and start playback (does not block)
-int shitaudio_play_flac(shitaudio *a, const char *filename) {
-	// make sure stuff isn't weirdly piped in
+// Load Opus Ogg audio as pcm and shove into buffer
+int shitaudio_opus_genpcm(shitaudio *a, const char *filename){
+	if (!a || !filename) return -1;
+	// clear buffer and source so no weird shit piped in
+	// initially only wanted to clear buffer but since buffer is base of source need to clear source first then buffer so weird thing don't happen.
 	shitaudio_stop(a);
-    if (!a || !filename) return -1;
+       int err;
+	OggOpusFile *bgm = op_open_file(filename, &err);
+	if (bgm == NULL) {
+		fprintf(stderr, "Failed to open Opus file (error code: %d)\n", err);
+		return 1;
+	}
+	const OpusHead *head = op_head(bgm, -1); // -1 for first logical bitstream
+	const int sample_rate = 48000; // Opus always 48 kHz
+	opus_int64 total_samples = op_pcm_total(bgm,-1); // total no. of sampels
+	int channels = head->channel_count;
+	// for debug
+	//printf("Sample rate: %d Channels: %d\n", sample_rate,channels);
+	//printf("Seekable: %d\n", op_seekable(bgm));
+	//printf("Bitrate: %d\n",op_bitrate(bgm,-1));
+	//printf("Sample num: %d \n", total_samples);
 
-    // Decode FLAC as 16-bit PCM
-    unsigned int channels;
-    unsigned int sampleRate;
-    drflac_uint64 totalPCMFrameCount;
-    drflac_int16 *pcm_data = drflac_open_file_and_read_pcm_frames_s16(
-        filename, &channels, &sampleRate, &totalPCMFrameCount, NULL);
-
-    if (!pcm_data) {
-        fprintf(stderr, "Failed to load FLAC file: %s\n", filename);
-        return -1;
+	opus_int16* pcm_data = malloc(op_pcm_total(bgm,-1) * 2 * sizeof(opus_int16));	// fat buffer so can read fat opus
+	opus_int64 samples_read_total = 0; 
+	while (samples_read_total < total_samples) { 
+		// reads something and has to skip two at a time because stereo is Ln Rn
+		int samples_read = op_read_stereo(bgm, pcm_data + samples_read_total * 2, total_samples - samples_read_total); 
+		if (samples_read <= 0) break; 
+		// EOF or error 
+		samples_read_total += samples_read; 
+	}
+	// make a buffer
+	alGenBuffers(1, &a->buffer);
+	ALenum alerr = alGetError();
+	if (alerr != AL_NO_ERROR) {
+		fprintf(stderr, "alGenBuffers error: 0x%X\n", alerr);
+		free(pcm_data);
+		return -1;
+	}
+	
+	// generate format
+	ALenum format = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+	// find size from total_samples * channels (2 in most cases) and size of opus_int16
+	ALsizei size = total_samples * channels * sizeof(opus_int16);
+	alBufferData(a->buffer,format,pcm_data,size,sample_rate);
+	if ((err = alGetError()) != AL_NO_ERROR) {
+		fprintf(stderr, "alBufferData error: 0x%X\n", alerr);
+		alDeleteBuffers(1, &a->buffer);
+		a->buffer = 0;
+		free(pcm_data);
+		return -1;
+	}
+	// free so no die also because we no longer require the data
+	free(pcm_data);
+	op_free(bgm);
+	return 0;
+}
+void shitaudio_play_pcm(shitaudio *a){
+    if (!a) return;
+// clear source so no weird behaviour
+// gen alerr
+ALenum err = alGetError();
+    if (a->source) {
+        alSourceStop(a->source);
+        alDeleteSources(1, &a->source);
+        a->source = 0;
     }
-
-    // Create buffer
-    alGenBuffers(1, &a->buffer);
-    ALenum err = alGetError();
-    if (err != AL_NO_ERROR) {
-        fprintf(stderr, "alGenBuffers error: 0x%X\n", err);
-        drflac_free(pcm_data, NULL);
-        return -1;
-    }
-
-    ALenum format = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
-    ALsizei size = (ALsizei)(totalPCMFrameCount * channels * sizeof(drflac_int16));
-    alBufferData(a->buffer, format, pcm_data, size, sampleRate);
-    if ((err = alGetError()) != AL_NO_ERROR) {
-        fprintf(stderr, "alBufferData error: 0x%X\n", err);
-        alDeleteBuffers(1, &a->buffer);
-        a->buffer = 0;
-        drflac_free(pcm_data, NULL);
-        return -1;
-    }
-
-    drflac_free(pcm_data, NULL);
-    pcm_data = NULL;
-
-    // Create source and attach buffer
     alGenSources(1, &a->source);
     if ((err = alGetError()) != AL_NO_ERROR) {
         fprintf(stderr, "alGenSources error: 0x%X\n", err);
         alDeleteBuffers(1, &a->buffer);
         a->buffer = 0;
-        return -1;
+        return;
     }
 
     alSourcei(a->source, AL_BUFFER, a->buffer);
@@ -151,98 +165,6 @@ int shitaudio_play_flac(shitaudio *a, const char *filename) {
         a->source = 0;
         alDeleteBuffers(1, &a->buffer);
         a->buffer = 0;
-        return -1;
+        return;
     }
-
-    return 0;
-}
-// Load Opus Ogg audio (also does not block)
-int shitaudio_play_opus(shitaudio *a, const char *filename){
-	shitaudio_stop(a);
-    if (!a || !filename) return -1;
-int err;
-    // Open Opus file
-    OggOpusFile *of = op_open_file(filename, &err);
-    if (!of) {
-        fprintf(stderr, "Failed to open Opus file: %s (error %d)\n", filename, err);
-        return 1;
-    }
-
-    // Get sample rate and channels from the Opus file
-    const OpusHead *head = op_head(of, -1);
-    if (!head) {
-        fprintf(stderr, "Failed to get Opus file info\n");
-        op_free(of);
-        return 1;
-    }
-
-    unsigned int channels = head->channel_count;
-    unsigned int sample_rate = 48000;  // Opus standard sample rate
-
-    // Generate OpenAL buffer and source
-    alGenBuffers(1, &a->buffer);
-    alGenSources(1, &a->source);
-
-    // Buffer for decoded PCM data (16-bit signed samples)
-    short pcm_buffer[4096 * channels];
-
-    // Read decoded samples from opus file into pcm_buffer
-    // We'll read the entire file at once to keep example simple
-    int total_samples = 0;
-    int capacity = 4096 * 100;  // arbitrary large buffer for example
-    short *all_samples = malloc(sizeof(short) * capacity * channels);
-    if (!all_samples) {
-        fprintf(stderr, "Failed to allocate memory\n");
-        op_free(of);
-        alcDestroyContext(a->context);
-        alcCloseDevice(a->device);
-        return 1;
-    }
-
-    int samples_read;
-    while ((samples_read = op_read_stereo(of, pcm_buffer, 4096)) > 0) {
-        if (total_samples + samples_read > capacity) {
-            capacity *= 2;
-            short *tmp = realloc(all_samples, sizeof(short) * capacity * channels);
-            if (!tmp) {
-                fprintf(stderr, "Failed to realloc memory\n");
-                free(all_samples);
-                op_free(of);
-                alcDestroyContext(a->context);
-                alcCloseDevice(a->device);
-                return 1;
-            }
-            all_samples = tmp;
-        }
-        // Copy decoded samples to all_samples
-        for (unsigned int i = 0; i < samples_read * channels; i++) {
-            all_samples[total_samples * channels + i] = pcm_buffer[i];
-        }
-        total_samples += samples_read;
-    }
-
-    op_free(of);
-
-    // Determine OpenAL format
-    ALenum format;
-    if (channels == 1)
-        format = AL_FORMAT_MONO16;
-    else if (channels == 2)
-        format = AL_FORMAT_STEREO16;
-    else {
-        fprintf(stderr, "Unsupported channel count: %d\n", channels);
-        free(all_samples);
-        alcDestroyContext(a->context);
-        alcCloseDevice(a->device);
-        return 1;
-    }
-
-    // Buffer audio data into OpenAL buffer
-    alBufferData(a->buffer, format, all_samples, total_samples * channels * sizeof(short), sample_rate);
-    free(all_samples);
-
-    // Attach buffer to source and play
-    alSourcei(a->source, AL_BUFFER, a->buffer);
-    alSourcePlay(a->source);
-    return 0;
 }

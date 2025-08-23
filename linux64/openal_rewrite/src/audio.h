@@ -17,10 +17,11 @@ typedef struct shitaudio {
 } shitaudio;
 
 int shitaudio_init(shitaudio *a);
-int shitaudio_play_flac(shitaudio *a, const char *filename);
-int shitaudio_play_opus(shitaudio *a, const char *filename);
+//int shitaudio_play_flac(shitaudio *a, const char *filename); deprecated
+int shitaudio_opus_genpcm(shitaudio *a, const char *filename);
+void shitaudio_play_pcm(shitaudio *a);
 void shitaudio_destroy(shitaudio *a);
-void shitaudio_wait_uf(shitaudio *a);
+//void shitaudio_wait_uf(shitaudio *a); deprecated
 void shitaudio_stop(shitaudio *a);
 #endif
 
