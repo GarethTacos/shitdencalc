@@ -21,7 +21,7 @@ now just focused on making it easier to port to other platforms.
 
 ## Extra Notes:
 - I didn't make it loop because it would be annoying and I would have to play around with threads and cause unsafe behaviours again.
-- you can technically replace the iamu_miku.flac or modify the source code to play another flac. (I won't stop you because I don't care)
+- you can technically replace the hachi2hoshimi.ogg or modify the source code to play another ogg/opus. (I won't stop you because I don't care)
 ## And as per standard procedure... (Licensing)
 This project is licensed under the GPL-3.0-or-later.  
 
@@ -29,5 +29,6 @@ This program uses:
 - GMP, licensed under LGPL-3.0-or-later
 - OpenAL Soft, licensed under LGPL-2.0-or-later
 - Libopusfile, licensed under BSD-3-Clause
+- Tribute to Dr_FLAC for being the sole audio library in the early builds but since this program no longer uses it, license not included
 
 Their license texts are provided in LICENSES/.

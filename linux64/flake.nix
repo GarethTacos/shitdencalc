@@ -28,6 +28,7 @@
 	  python3
 	  notcurses
 	  mpfr
+	  libuv
 	  pkg-config
         ];
 
