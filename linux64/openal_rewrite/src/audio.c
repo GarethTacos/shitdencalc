@@ -5,19 +5,25 @@
  */
 //#define DR_FLAC_IMPLEMENTATION
 //#include "dr_flac.h"
+#define AL_ALEXT_PROTOTYPES
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/efx.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <opusfile.h>
+#include <string.h>
 
+// HAHAHAHAHA EPHEX BABEEEEEEE
+// ok i should sotp
 typedef struct shitaudio {
     ALCdevice *device;
     ALCcontext *context;
     ALuint source;
     ALuint buffer;
+    ALuint fxslot;
+    ALuint fx;
+    float duration;
 } shitaudio;
 
 // Initialize OpenAL context and zero state
@@ -81,6 +87,12 @@ void shitaudio_stop(shitaudio *a){
         a->buffer = 0;
     }
 }
+// stops music only
+void shitaudio_pause(shitaudio *a){
+	if (!a) return;
+	if (a->source) alSourceStop(a->source);
+	return;
+}
 // Load Opus Ogg audio as pcm and shove into buffer
 int shitaudio_opus_genpcm(shitaudio *a, const char *filename){
 	if (!a || !filename) return -1;
@@ -103,7 +115,7 @@ int shitaudio_opus_genpcm(shitaudio *a, const char *filename){
 	//printf("Bitrate: %d\n",op_bitrate(bgm,-1));
 	//printf("Sample num: %d \n", total_samples);
 
-	opus_int16* pcm_data = malloc(op_pcm_total(bgm,-1) * 2 * sizeof(opus_int16));	// fat buffer so can read fat opus
+	opus_int16* pcm_data = malloc(total_samples * 2 * sizeof(opus_int16));	// fat buffer so can read fat opus
 	opus_int64 samples_read_total = 0; 
 	while (samples_read_total < total_samples) { 
 		// reads something and has to skip two at a time because stereo is Ln Rn
@@ -114,8 +126,9 @@ int shitaudio_opus_genpcm(shitaudio *a, const char *filename){
 	}
 	// make a buffer
 	alGenBuffers(1, &a->buffer);
+	// have to find out the diff between this and the nested one
 	ALenum alerr = alGetError();
-	if (alerr != AL_NO_ERROR) {
+	if ((alerr = alGetError()) != AL_NO_ERROR) {
 		fprintf(stderr, "alGenBuffers error: 0x%X\n", alerr);
 		free(pcm_data);
 		return -1;
@@ -126,31 +139,86 @@ int shitaudio_opus_genpcm(shitaudio *a, const char *filename){
 	// find size from total_samples * channels (2 in most cases) and size of opus_int16
 	ALsizei size = total_samples * channels * sizeof(opus_int16);
 	alBufferData(a->buffer,format,pcm_data,size,sample_rate);
-	if ((err = alGetError()) != AL_NO_ERROR) {
+	if ((alerr = alGetError()) != AL_NO_ERROR) {
 		fprintf(stderr, "alBufferData error: 0x%X\n", alerr);
 		alDeleteBuffers(1, &a->buffer);
 		a->buffer = 0;
 		free(pcm_data);
 		return -1;
 	}
+	a->duration = (float)total_samples / (float)sample_rate;
 	// free so no die also because we no longer require the data
 	free(pcm_data);
 	op_free(bgm);
 	return 0;
 }
+//seek fn
+void shitaudio_seek(shitaudio *a, float pos_off){
+	if (!a || !pos_off || !a->source || !a->buffer) return;
+	//ALfloat pos = 0.0f;
+	//alGetSourcef(a->source, AL_SEC_OFFSET, &pos);
+	// change duration
+	if (pos_off < 0.0f) pos_off = 0.0f;
+	if (pos_off > a->duration) pos_off = a->duration;
+	alSourceStop(a->source);
+	alSourcef(a->source, AL_SEC_OFFSET,pos_off);
+	alSourcePlay(a->source);
+	return;
+}
+// seeks to 0.0 and plays source
+void shitaudio_cheap_replay(shitaudio *a){
+	ALenum alerr = alGetError();
+	// resets source, keeps data
+	alSourceStop(a->source);
+	alSourcef(a->source,AL_SEC_OFFSET,0.0f);
+	alSourcePlay(a->source);
+	
+	if ((alerr = alGetError()) != AL_NO_ERROR) {
+		fprintf(stderr, "alSourcePlay error: 0x%X\n", alerr);
+		// cleanup partial
+		alDeleteSources(1, &a->source);
+		a->source = 0;
+		alDeleteBuffers(1, &a->buffer);
+		a->buffer = 0;
+		return;
+	}
+
+	return;
+}
+// gen source only
+void shitaudio_gensource(shitaudio *a){
+	ALenum alerr = alGetError();
+	if (!a) return;
+	// make a new source
+	if (a->source) {
+		alSourceStop(a->source);
+		alDeleteSources(1, &a->source);
+		a->source = 0;
+	}
+	alGenSources(1, &a->source);
+	if ((alerr = alGetError()) != AL_NO_ERROR) {
+        	fprintf(stderr, "alGenSources error: 0x%X\n", alerr);
+        	alDeleteBuffers(1, &a->buffer);
+        	a->buffer = 0;
+        	return;
+    }
+	// attach buffer to source
+    alSourcei(a->source, AL_BUFFER, a->buffer);
+}
+// gen source and play
 void shitaudio_play_pcm(shitaudio *a){
     if (!a) return;
 // clear source so no weird behaviour
 // gen alerr
-ALenum err = alGetError();
+ALenum alerr = alGetError();
     if (a->source) {
         alSourceStop(a->source);
         alDeleteSources(1, &a->source);
         a->source = 0;
     }
     alGenSources(1, &a->source);
-    if ((err = alGetError()) != AL_NO_ERROR) {
-        fprintf(stderr, "alGenSources error: 0x%X\n", err);
+    if ((alerr = alGetError()) != AL_NO_ERROR) {
+        fprintf(stderr, "alGenSources error: 0x%X\n", alerr);
         alDeleteBuffers(1, &a->buffer);
         a->buffer = 0;
         return;
@@ -158,8 +226,8 @@ ALenum err = alGetError();
 
     alSourcei(a->source, AL_BUFFER, a->buffer);
     alSourcePlay(a->source);
-    if ((err = alGetError()) != AL_NO_ERROR) {
-        fprintf(stderr, "alSourcePlay error: 0x%X\n", err);
+    if ((alerr = alGetError()) != AL_NO_ERROR) {
+        fprintf(stderr, "alSourcePlay error: 0x%X\n", alerr);
         // cleanup partial
         alDeleteSources(1, &a->source);
         a->source = 0;
@@ -167,4 +235,44 @@ ALenum err = alGetError();
         a->buffer = 0;
         return;
     }
+}
+
+// I like em spicy mhehehe
+void shitaudio_reverb(shitaudio *a){
+	if (!a || !a->device) return;
+	ALboolean efxSupported = alcIsExtensionPresent(a->device, "ALC_EXT_EFX");
+	if (!efxSupported) {
+		// die
+		return;
+	}
+	alGenAuxiliaryEffectSlots(1, &a->fxslot);
+	alGenEffects(1, &a->fx);
+	// Set fx type to R E V E R B
+	alEffecti(a->fx, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+	// params and boring stuff *insert yawn*
+	alEffectf(a->fx, AL_REVERB_DECAY_TIME, 2.0f);        // 2 seconds decay
+	alEffectf(a->fx, AL_REVERB_DENSITY, 0.8f);          // Room density
+	alEffectf(a->fx, AL_REVERB_DIFFUSION, 0.9f);        // Sound diffusion
+	alEffectf(a->fx, AL_REVERB_GAIN, 0.7f);             // Overall volume
+	alEffectf(a->fx, AL_REVERB_GAINHF, 0.5f);           // High frequency attenuation
+	// load her up real nice ;)
+	alAuxiliaryEffectSloti(a->fxslot, AL_EFFECTSLOT_EFFECT, a->fx);
+	// idk this part lol
+	// Attach the source to the fx slot
+	ALuint send = 0; // usually send index 0
+	alSource3i(a->source, AL_AUXILIARY_SEND_FILTER, a->fxslot, send, AL_FILTER_NULL);
+}
+
+// DIE POTATO DIEEEE
+void shitaudio_fxdie(shitaudio *a){
+	// kill you
+	if(a->fx) { 
+		alDeleteEffects(1, &a->fx);
+		a->fx = 0;
+	}
+	// aaaand kill you :3
+	if (a->fxslot) {
+		alDeleteAuxiliaryEffectSlots(1, &a->fxslot);
+		a->fxslot = 0;
+	}
 }

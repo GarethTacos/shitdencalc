@@ -12,6 +12,8 @@
 #include "audio.h"
 #include "dr_flac.h"
 #include <stdlib.h>
+#include <pthread.h>
+// pthread is back so when loading audio, block won't occur
 #define PI 3.1415926535897932384626433832795
 // current state of project
 // cpp port cancelled because cmake is disgusting
@@ -20,6 +22,38 @@
 // OPENAL REWRITE BABEY!!!!!!
 // also cleaner interfacing.
 shitaudio bgm;
+// non block
+pthread_t audioload;
+pthread_mutex_t aumtx = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t aucond = PTHREAD_COND_INITIALIZER;
+int audload = 0;
+int joined = 0;
+void* setup_audio(){
+	// init function
+	// init OpenAL
+	audload = 0;
+	pthread_mutex_lock(&aumtx);
+	shitaudio_init(&bgm);
+	bgm.buffer = 0;
+	bgm.source = 0;
+	bgm.duration = 0.0f;
+	if (shitaudio_opus_genpcm(&bgm,"cuso4.ogg") == 0){
+		shitaudio_gensource(&bgm);
+		shitaudio_reverb(&bgm);
+	}
+	audload = 1;
+	pthread_mutex_unlock(&aumtx);
+	return NULL;
+}
+void chk_lock(){
+	if (!joined){
+	pthread_mutex_lock(&aumtx);
+	while (!audload) pthread_cond_wait(&aucond,&aumtx);
+	pthread_mutex_unlock(&aumtx);
+	pthread_join(audioload, NULL);
+	joined = 1;
+	}
+}
 void tinput(char *buffer, size_t size) {
     if (fgets(buffer, size, stdin) != NULL) {
         size_t len = strlen(buffer);
@@ -147,29 +181,43 @@ void opselect(){
 	// trigoooo sin
 	if (strcmp(skibidi, "sin") == 0){
 	    // Angle in degrees
-	    double angle_degrees = 89.0;
+	    double angle_degrees = 90.0;
 	    // Convert degrees to radians
 	    double angle_radians = angle_degrees * (PI / 180.0);
 	    // Calculate the sine of the angle in radians
 	    double result = sin(angle_radians);
 	    // Print the result
-	    printf("Sine of %.2f degrees (%.2f radians) is: %.6f\n", angle_degrees, angle_radians, result);
+	    printf("Sine of %g degrees (%g radians) is: %g\n", angle_degrees, angle_radians, result);
+	}
+	if(strcmp(skibidi, "bgm ff") == 0){
+		// get duration to skip to
+		fflush(stdout);
+		printf("warn: this function is very skibidi\n");
+		if (bgm.duration != 0.0f) printf("duration: %f\n",bgm.duration);
+		printf("where do you want to skip to? ");
+		tinput(skibidi,sizeof(skibidi));
+		float skip = atof(skibidi);
+		shitaudio_seek(&bgm,skip);
 	}
 	if (strcmp(skibidi, "exit") == 0){
 	    // break loop and exit
+	    chk_lock();
+	    shitaudio_fxdie(&bgm);
 	    shitaudio_stop(&bgm);
 	    shitaudio_destroy(&bgm);
-	    exit(1);
 	}
 	// problem was solved
 	// turns out it was a buffer issue
 	// bgm start pushed [10] to its limit which caused weird behaviour
 	// now skibidi is [64] so more headroom
 	if(strcmp(skibidi, "bgm start") == 0){
-		if(shitaudio_opus_genpcm(&bgm,"hachi2hoshimi.ogg") == 0) shitaudio_play_pcm(&bgm);
+		chk_lock();
+		shitaudio_cheap_replay(&bgm);
 	}
 	if(strcmp(skibidi, "bgm stop") == 0){
-		shitaudio_stop(&bgm);
+		// won't destroy things like stop
+		chk_lock();
+		shitaudio_pause(&bgm);
 	}
 	if (strcmp(skibidi, "hmlala") == 0){
 		printf("\033[H\033[J");
@@ -182,7 +230,7 @@ void opselect(){
 	    printf("\033[H\033[J");
 	}
 	if (strcmp(skibidi, "help") == 0){
-	    // clear screen
+	    // print help
 	    printf("%s",help());
 	}
 	}
@@ -190,17 +238,14 @@ void opselect(){
 
 
 int main(){
-	// init function
-	// init OpenAL
-	shitaudio_init(&bgm);
-	bgm.buffer = 0;
-	bgm.source = 0;
 	// no more thread tomfoolery because dangerous
+	pthread_create(&audioload,NULL,setup_audio,NULL);
 	printf("%s\n", title());
-	printf("welcome to supershitden calc\n");
-	printf("version 1.1.0-puffy-linux64\n");
-	printf("NOW WITH ARBITRARY-PRECISION ARITHMETIC\n");
-	printf("the best calculator ever because yes. (totally not ribbity)\n");
+	// name change?!?!?!
+	printf("welcome to totally awesum no3calc\n");
+	printf("version forgor\n");
+	printf("WITH ARBITRARY-PRECISION ARITHMETIC\n");
+	printf("the best calculator ever because yes. (totally not nom)\n");
 	opselect();
 	return 0;
 }

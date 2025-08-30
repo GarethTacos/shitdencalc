@@ -29,6 +29,7 @@
 	  notcurses
 	  mpfr
 	  libuv
+	  luajit
 	  pkg-config
         ];
 
