@@ -3,31 +3,45 @@
  * main.c — supershitden calc
  * Copyright (c) 2025 GarethTacos
  */
-
+// To download:
+// OpenAL Docs
+// Opusfile Docs
+// GMP docs
+// MPFR docs
+// pthread docs
+// other funni stuff docs
+// general C programming book
+// also cascadia code font instead of mononoki
+// need tem ligatures
 #include <stdio.h>
 #include "misc.h"
 #include <string.h>
 #include <math.h>
 #include <gmp.h>
+#include <mpfr.h>
 #include "audio.h"
-#include "dr_flac.h"
 #include <stdlib.h>
+#include <assert.h>
 #include <pthread.h>
+// tongue is killing me bcos oral thrush or wounds idk
+// bored so im writing about it.
 // pthread is back so when loading audio, block won't occur
 #define PI 3.1415926535897932384626433832795
 // current state of project
-// cpp port cancelled because cmake is disgusting
-// now working on json parsing and updating
-// fhs soln possibly needed
+// cpp port maybe because cmake is tolerable
+// now working on cleaner functions
 // OPENAL REWRITE BABEY!!!!!!
 // also cleaner interfacing.
+// rewritten init functions to be indefinite and more dynamic
 shitaudio bgm;
 // non block
 pthread_t audioload;
 pthread_mutex_t aumtx = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t aucond = PTHREAD_COND_INITIALIZER;
-int audload = 0;
-int joined = 0;
+// booleans lol (lazy to import stdbool)
+// ok maybe should import stdbool so my foot stays intact
+char audload = 0;
+char joined = 0;
 void* setup_audio(){
 	// init function
 	// init OpenAL
@@ -37,7 +51,7 @@ void* setup_audio(){
 	bgm.buffer = 0;
 	bgm.source = 0;
 	bgm.duration = 0.0f;
-	if (shitaudio_opus_genpcm(&bgm,"cuso4.ogg") == 0){
+	if (shitaudio_opus_genpcm(&bgm,"hachi2hoshimi.ogg") == 0){
 		shitaudio_gensource(&bgm);
 		shitaudio_reverb(&bgm);
 	}
@@ -72,40 +86,75 @@ void tinput(char *buffer, size_t size) {
         buffer[0] = '\0';
     }
 }
-void in3_clear(mpz_t *a, mpz_t *b, mpz_t *result){
-		mpz_clear(*a);
-		mpz_clear(*b);
-		mpz_clear(*result);
+void ina_clear(mpz_ptr arr[], int len){
+	for (int i=0; i < len; i++){
+		mpz_clear(arr[i]);
+	}
 }
-void fl3_clear(mpf_t *a, mpf_t *b, mpf_t *result){
-		mpf_clear(*a);
-		mpf_clear(*b);
-		mpf_clear(*result);
+
+void ina_init(mpz_ptr arr[], int len){
+	for (int i=0; i < len; i++){
+		mpz_init(arr[i]);
+	}
 }
-int in2_o1_init(mpz_t *a, mpz_t *b, mpz_t *result){
-	 	// init
-	mpz_init(*a);
-	mpz_init(*b);
-	mpz_init(*result);
-	//set
-	char astr[1000];
-	char bstr[1000];
-	printf("enter first integer: ");
-	tinput(astr,sizeof(astr));
-	printf("enter second integer: ");
-	tinput(bstr,sizeof(bstr));
-	if (mpz_set_str(*a, astr, 10) == -1) {
-		// Error handling if conversion fails
-		printf("error: Invalid number format.\n");
-		return -1;
-	} 
-	if (mpz_set_str(*b, bstr, 10) == -1) {
-		// Error handling if conversion fails
-		printf("error: Invalid number format.\n");
-		return -1;
+
+void rta_clear(mpq_ptr arr[], int len){
+	for (int i=0; i < len; i++){
+		mpq_clear(arr[i]);
+	}
+}
+
+void rta_init(mpq_ptr arr[], int len){
+	for (int i=0; i < len; i++){
+		mpq_init(arr[i]);
+	}
+}
+void fla_clear(mpf_ptr arr[], int len){
+	for (int i = 0; i < len; i++){
+		mpf_clear(arr[i]);
+	}
+}
+
+void fla_init(mpf_ptr arr[], int len){
+	for (int i = 0; i < len; i++){
+		mpf_init(arr[i]);
+	}
+}
+int fla_tofl(mpf_ptr afl[], char *astr[], int len){
+	for (int i = 0; i < len; i++){
+		if (mpf_set_str(afl[i],astr[i],10) == -1){
+			printf("error: invalid number format.\n");
+			return -1;
+		}
 	}
 	return 0;
 }
+
+int ina_toin(mpz_ptr ain[], char *astr[], int len){
+	for (int i = 0; i < len; i++){
+		if (mpz_set_str(ain[i],astr[i],10) == -1){
+			printf("error: invalid number format.\n");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+int rta_tort(mpq_ptr art[], char *astr[], int len){
+	for (int i = 0; i < len; i++){
+		if (mpq_set_str(art[i],astr[i],10) == -1){
+			printf("error: invalid number format.\n");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+// to change to ptr array so can shove as many variables inside
+// for in3 and fl3 clear
+// also to change to ptr array
+
+// PTR ARR AGAIN!!!!
 int fl2_o1_init(mpf_t *a, mpf_t *b, mpf_t *result){
 	 	// init
 		mpf_init(*a);
@@ -131,7 +180,7 @@ int fl2_o1_init(mpf_t *a, mpf_t *b, mpf_t *result){
 		return 0;
 }
 void opselect(){
-	char skibidi[64] = "";
+	char skibidi[64] = ""; // usr input name
 	while (strcmp(skibidi, "exit") != 0){
 	printf("select an operation for shitden to calculate or type 'help' for a list ");
 	fflush(stdout);
@@ -139,44 +188,97 @@ void opselect(){
 	//printf("You entered: %s\n", skibidi);
 	// add func
 	if (strcmp(skibidi, "+") == 0){
+		// vars and arrs
 		mpz_t a, b, result;
+		mpz_ptr arr[] = {a,b,result};
+		ina_init(arr,3); // init so no weird shit happens
+		// user input
+		char astr[1000];
+		char bstr[1000];
+		printf("enter first integer: ");
+		tinput(astr,sizeof(astr));
+		printf("enter second integer: ");
+		tinput(bstr,sizeof(bstr));
+		// str arr for easy passing
+		char *str_arr[] = {astr,bstr};
 		// check if valid
-		if (in2_o1_init(&a,&b,&result) == 0){
+		if(ina_toin(arr,str_arr,2) == 0){
 			mpz_add(result,a,b);
 			gmp_printf("the sum of %Zd and %Zd is: %Zd\n", a,b,result);
 		};
 		//free
-		in3_clear(&a,&b,&result);
+		//don't fix what alr works, changed this to mpz_t and err'd badly lol
+		ina_clear(arr,3);
 	}
 	// sub func
 	if (strcmp(skibidi, "-") == 0){
+		// make vars and arrs
 		mpz_t a, b, result;
+		mpz_ptr arr[] = {a,b,result};
+		// init so weird shit don't happen like last time
+		ina_init(arr,3);
+		// get usr input
+		char astr[1000];
+		char bstr[1000];
+		printf("enter first integer: ");
+		tinput(astr,sizeof(astr));
+		printf("enter second integer: ");
+		tinput(bstr,sizeof(bstr));
+		// make an array for easier passing
+		char *str_arr[] = {astr,bstr};
 		// check if valid
-		if (in2_o1_init(&a,&b,&result) == 0){
+		if(ina_toin(arr,str_arr,2) == 0){
 			mpz_sub(result,a,b);
 			gmp_printf("the difference of %Zd and %Zd is: %Zd\n", a,b,result);
 		};
 		//free
-		in3_clear(&a,&b,&result);
+		ina_clear(arr,3);
 	}
 	// div func
 	if (strcmp(skibidi, "/") == 0){
-		mpf_t a, b, result;
-		if (fl2_o1_init(&a,&b,&result) == 0){
+		mpq_t a, b, result;
+		mpq_ptr arr[] = {a,b,result};
+		rta_init(arr,3);
+		// user input
+		char astr[1000];
+		char bstr[1000];
+		printf("enter first float: ");
+		tinput(astr,sizeof(astr));
+		printf("enter second float: ");
+		tinput(bstr,sizeof(bstr));
+		// str arr for easy passing
+		char *str_arr[] = {astr,bstr};		
+		if (rta_tort(arr,str_arr,2) == 0){
 				//div
-				mpf_div(result,a,b);
-				gmp_printf("%.2Ff divided by %.2Ff is: %.15Ff\n", a,b,result);
+				mpq_div(result,a,b);
+				// make temporary float
+				mpf_t f;
+				mpf_init(f);
+				mpf_set_q(f, result);
+				gmp_printf("%Qd divided by %Qd is: %.Ff\n", a,b,f);
+				mpf_clear(f);
 		}
-		fl3_clear(&a,&b,&result);
+		rta_clear(arr,3);
 	}
 	// mul func
 	if (strcmp(skibidi, "*") == 0){
 		mpf_t a, b, result;
-		if (fl2_o1_init(&a,&b,&result) == 0){
+		mpf_ptr arr[] = {a,b,result};
+		fla_init(arr,3);
+		// user input
+		char astr[1000];
+		char bstr[1000];
+		printf("enter first float: ");
+		tinput(astr,sizeof(astr));
+		printf("enter second float: ");
+		tinput(bstr,sizeof(bstr));
+		// str arr for easy passing
+		char *str_arr[] = {astr,bstr};		
+		if (fla_tofl(arr,str_arr,2) == 0){
 				mpf_mul(result,a,b);
-				gmp_printf("%.2Ff multiplied by %.2Ff is: %.15Ff\n", a,b,result);
+				gmp_printf("%.Ff multiplied by %.Ff is: %.Ff\n", a,b,result);
 		}
-		fl3_clear(&a,&b,&result);
+		fla_clear(arr,3);
 		}
 	// trigoooo sin
 	if (strcmp(skibidi, "sin") == 0){
@@ -192,7 +294,7 @@ void opselect(){
 	if(strcmp(skibidi, "bgm ff") == 0){
 		// get duration to skip to
 		fflush(stdout);
-		printf("warn: this function is very skibidi\n");
+		printf("%swarn:%s this function is very skibidi\n",ANSI_COLOR_YELLOW,ANSI_RESET);
 		if (bgm.duration != 0.0f) printf("duration: %f\n",bgm.duration);
 		printf("where do you want to skip to? ");
 		tinput(skibidi,sizeof(skibidi));
@@ -238,6 +340,7 @@ void opselect(){
 
 
 int main(){
+	assert(0);
 	// no more thread tomfoolery because dangerous
 	pthread_create(&audioload,NULL,setup_audio,NULL);
 	printf("%s\n", title());

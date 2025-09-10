@@ -1,0 +1,111 @@
+Here's how to convert **Gregorian (solar) calendar dates** to the traditional Chinese **干支 (sexagenary) cycle**, covering years, months, and days:
+
+---
+
+## Year to Sexagenary Year (干支年)
+
+For **AD years** (≥ 4 AD):
+
+1. Compute `(year − 3) mod 60`
+2. The result gives a number from **0 to 59**; if 0, it corresponds to the **60th position** in the cycle.
+
+   * For example:
+     `(2012 − 3) mod 60 = 2009 mod 60 = 29 → 壬辰 (29th position)` ([Scribd][1], [calendars.fandom.com][2])
+
+For **BC years** (before 1 AD):
+
+1. Compute `(year + 2) mod 60`
+2. Then subtract that remainder from 60 to get position in the cycle.
+
+   * Example:
+     `221 BC → (221 + 2) mod 60 = 223 mod 60 = 43 → 60 − 43 = 17 → 庚辰` ([Scribd][1], [calendars.fandom.com][2])
+
+**Steps simplified**:
+
+| Era      | Formula                                      |
+| -------- | -------------------------------------------- |
+| AD years | (year – 3) mod 60 → position in 1–60         |
+| BC years | rem = (year + 2) mod 60; Position = 60 – rem |
+
+Once you have the position number (1 through 60), refer to a sexagenary cycle table to yield the corresponding stem-branch combination.
+
+---
+
+## Month to Sexagenary Month (干支月)
+
+This is more complex and often based on the **solar terms (二十四节气)**. However, there's a usable rule-of-thumb for determining the **Heavenly Stem** of the first month (正月):
+
+1. Compute `year mod 5`
+2. Subtract 2, then multiply by 2, and subtract 1
+3. If negative, add 10 to wrap into 0–9
+4. Map the resulting number to the stem (甲1, 乙2, …, 癸10)
+
+   * Example:
+     *2019* →
+     `2019 mod 5 = 4 → (4 − 2) × 2 − 1 = 3 → Stem = 丙 → 正月 is 丙寅月` ([Bilibili][3])
+     *2022* →
+     `2022 mod 5 = 2 → (2 − 2) × 2 − 1 = −1 → +10 = 9 → Stem = 壬 → 正月 is 壬寅月` ([Bilibili][3])
+
+The **Earthly Branch** for months typically starts with **寅 (Yin)** for 正月, then continues cyclically (寅→卯→辰...).
+
+---
+
+## Day to Sexagenary Day (干支日)
+
+### A. Using Julian Day Number (JDN)
+
+1. Convert Gregorian date to the **Julian Day Number** (JDN) at noon.
+2. Let `S = 1 + ((JDN_noon − 11) mod 60)` — where 1 corresponds to **甲子**, 2 to **乙丑**, etc. ([ytliu0.github.io][4])
+3. Then:
+
+   * Heavenly Stem number: `T = 1 + ((S − 1) mod 10)`
+   * Earthly Branch number: `B = 1 + ((S − 1) mod 12)` ([ytliu0.github.io][4])
+
+Or equivalently:
+
+* `T = 1 + ((JDN_noon − 1) mod 10)`
+* `B = 1 + ((JDN_noon + 1) mod 12)` ([ytliu0.github.io][4])
+
+### B. Direct Formula (Gregorian Calendar)
+
+A more direct formula for converting a **Gregorian date (year, month, day)** to sexagenary day is:
+
+Let:
+
+* **C** = century number minus 1 (i.e., first two digits of year minus 1)
+* **y** = last two digits of the year
+* **M** = month (treat Jan/Feb as months 13 or 14 of previous year)
+* **d** = day
+* **i** = 0 if month is odd; 6 if month is even
+
+Then:
+
+* **Stem calculation**:
+  `g = 4C + floor(C / 4) + 5y + floor(y / 4) + floor[3 × (M + 1) / 5] + d − 3`
+
+* **Branch calculation**:
+  `z = 8C + floor(C / 4) + 5y + floor(y / 4) + floor[3 × (M + 1) / 5] + d + 7 + i`
+  ([Wikipedia][5])
+
+Take:
+
+* `g mod 10 → Heavenly Stem (1–10)`
+* `z mod 12 → Earthly Branch (1–12)`
+
+**Example** (2006-04-01):
+
+* C = 20−1 = 19, y = 06, M = 4, d = 1, i = 6 (even month)
+* `g = 4·19 + 4 + 5·6 + 1 + floor[3·5/5] + 1 − 3 = 197 → 197 mod 10 = 7 → 庚`
+* `z = 8·19 + 4 + 5·6 + 1 + 3 + 1 + 7 + 6 = 213 → 213 mod 12 = 9 → 申`
+  → Day is **庚申日** ([CSDN Blog][6], [Wikipedia][5])
+
+---
+
+## Summary Overview
+
+* **Year → 干支年**: Use `(year − 3) mod 60` for AD; `(year + 2) mod 60`, then `60 − rem` for BC.
+* **Month → 干支月**: Approximate first month stem using the mod-5-based rule; branch starts at 寅 and cycles.
+* **Day → 干支日**: Use either JDN-based modular arithmetic or the direct Gregorian formula (g / z formulas).
+
+---
+

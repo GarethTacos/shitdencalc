@@ -9,7 +9,15 @@
 // title.c
 
 const char* title() {
-    return "     _     _ _            _\n ___| |__ (_| |_ ___ __ _| | ___\n/ __| '_ \\| | __/ __/ _` | |/ __|\n\\__ | | | | | || (_| (_| | | (__\n|___|_| |_|_|\\__\\___\\__,_|_|\\___|";
+    return "             .oPYo.               8        \n"
+"                 `8               8        \n"
+"odYo. .oPYo.   .oP' .oPYo. .oPYo. 8 .oPYo. \n"
+"8' `8 8    8    `b. 8    ' .oooo8 8 8    ' \n"
+"8   8 8    8     :8 8    . 8    8 8 8    . \n"
+"8   8 `YooP' `YooP' `YooP' `YooP8 8 `YooP' \n"
+"..::..:.....::.....::.....::.....:..:.....:\n"
+":::::::::::::::::::::::::::::::::::::::::::\n"
+":::::::::::::::::::::::::::::::::::::::::::\n";
 }
 const char* help(){
 	return "shitden calc manual:\n"\
@@ -21,6 +29,6 @@ const char* help(){
 		"[help] displays this message\n"\
 		"[exit] exits the program\n"\
 		"[hmlala] ???\n"
-		"[bgm start] plays the I Nan Desu song\n"
-		"[bgm stop] stops the I Nan Desu song\n";
+		"[bgm start] plays song\n"
+		"[bgm stop] stops song\n";
 }

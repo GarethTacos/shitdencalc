@@ -29,6 +29,7 @@
 	  notcurses
 	  mpfr
 	  libuv
+	  jemalloc
 	  luajit
 	  pkg-config
         ];

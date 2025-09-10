@@ -5,7 +5,15 @@
  */
 //#define DR_FLAC_IMPLEMENTATION
 //#include "dr_flac.h"
+// NOTES!!!
+// probably need to make this more fault tolerant
+// BOILERPLATE TIIIMMEEEE!!!
+// But like fault tolerant to a specfic degree
+// not noob tolerant (although i am a noob so idk actually)
+// just tolerant to my own stupidity or smth
+// important shit so must not forget to define
 #define AL_ALEXT_PROTOTYPES
+#include "audio.h"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/efx.h>
@@ -16,15 +24,8 @@
 
 // HAHAHAHAHA EPHEX BABEEEEEEE
 // ok i should sotp
-typedef struct shitaudio {
-    ALCdevice *device;
-    ALCcontext *context;
-    ALuint source;
-    ALuint buffer;
-    ALuint fxslot;
-    ALuint fx;
-    float duration;
-} shitaudio;
+// apparently don't need double-def
+// refer to header
 
 // Initialize OpenAL context and zero state
 int shitaudio_init(shitaudio *a) {
@@ -135,7 +136,8 @@ int shitaudio_opus_genpcm(shitaudio *a, const char *filename){
 	}
 	
 	// generate format
-	ALenum format = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+	// ALenum format = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+	ALenum format = AL_FORMAT_STEREO16;
 	// find size from total_samples * channels (2 in most cases) and size of opus_int16
 	ALsizei size = total_samples * channels * sizeof(opus_int16);
 	alBufferData(a->buffer,format,pcm_data,size,sample_rate);

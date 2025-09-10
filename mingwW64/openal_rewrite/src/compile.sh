@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-x86_64-w64-mingw32-gcc main.c misc.c -lm -lgmp -Werror -Wall -Wextra -std=c99 -O2 -pipe -o ../bin/debug
+clang main.c misc.c audio.c -lm -lpthread $(pkg-config --cflags --libs opusfile openal) -lgmp -Werror -Wall -Wextra -std=c99 -O2 -s -DNDEBUG -flto -pipe -o ../bin/release
+
 

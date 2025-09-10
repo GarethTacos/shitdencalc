@@ -29,6 +29,6 @@ const char* help(){
 		"[help] displays this message\n"\
 		"[exit] exits the program\n"\
 		"[hmlala] ???\n"
-		"[bgm start] plays the I Nan Desu song\n"
-		"[bgm stop] stops the I Nan Desu song\n";
+		"[bgm start] plays song\n"
+		"[bgm stop] stops song\n";
 }
