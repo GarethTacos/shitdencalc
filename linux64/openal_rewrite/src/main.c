@@ -42,7 +42,8 @@ pthread_cond_t aucond = PTHREAD_COND_INITIALIZER;
 // ok maybe should import stdbool so my foot stays intact
 char audload = 0;
 char joined = 0;
-void* setup_audio(){
+void* setup_audio(void* arg){
+	char* str = (char*)arg;
 	// init function
 	// init OpenAL
 	audload = 0;
@@ -51,7 +52,7 @@ void* setup_audio(){
 	bgm.buffer = 0;
 	bgm.source = 0;
 	bgm.duration = 0.0f;
-	if (shitaudio_opus_genpcm(&bgm,"hachi2hoshimi.ogg") == 0){
+	if (shitaudio_opus_genpcm(&bgm,str) == 0){
 		shitaudio_gensource(&bgm);
 		shitaudio_reverb(&bgm);
 	}
@@ -340,9 +341,10 @@ void opselect(){
 
 
 int main(){
-	assert(0);
+	printf("enter song name to play (with extension): ");
+	char songsel[1000]; tinput(songsel,sizeof(songsel));
 	// no more thread tomfoolery because dangerous
-	pthread_create(&audioload,NULL,setup_audio,NULL);
+	pthread_create(&audioload,NULL,setup_audio,songsel);
 	printf("%s\n", title());
 	// name change?!?!?!
 	printf("welcome to totally awesum no3calc\n");

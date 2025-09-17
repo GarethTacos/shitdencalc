@@ -18,14 +18,11 @@
 #include <string.h>
 #include <math.h>
 #include <gmp.h>
-// exclude because not using yet #include <mpfr.h>
+//#include <mpfr.h>
 #include "audio.h"
 #include <stdlib.h>
 #include <assert.h>
-//#include <pthread.h>
-// no pthreads dis time because mingw hates me
-// so expect blocking audio
-// and a shit ton of dlls
+#include <pthread.h>
 // tongue is killing me bcos oral thrush or wounds idk
 // bored so im writing about it.
 // pthread is back so when loading audio, block won't occur
@@ -37,8 +34,41 @@
 // also cleaner interfacing.
 // rewritten init functions to be indefinite and more dynamic
 shitaudio bgm;
+// non block
+pthread_t audioload;
+pthread_mutex_t aumtx = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t aucond = PTHREAD_COND_INITIALIZER;
 // booleans lol (lazy to import stdbool)
 // ok maybe should import stdbool so my foot stays intact
+char audload = 0;
+char joined = 0;
+void* setup_audio(void* arg){
+	char* str = (char*)arg;
+	// init function
+	// init OpenAL
+	audload = 0;
+	pthread_mutex_lock(&aumtx);
+	shitaudio_init(&bgm);
+	bgm.buffer = 0;
+	bgm.source = 0;
+	bgm.duration = 0.0f;
+	if (shitaudio_opus_genpcm(&bgm,str) == 0){
+		shitaudio_gensource(&bgm);
+		shitaudio_reverb(&bgm);
+	}
+	audload = 1;
+	pthread_mutex_unlock(&aumtx);
+	return NULL;
+}
+void chk_lock(){
+	if (!joined){
+	pthread_mutex_lock(&aumtx);
+	while (!audload) pthread_cond_wait(&aucond,&aumtx);
+	pthread_mutex_unlock(&aumtx);
+	pthread_join(audioload, NULL);
+	joined = 1;
+	}
+}
 void tinput(char *buffer, size_t size) {
     if (fgets(buffer, size, stdin) != NULL) {
         size_t len = strlen(buffer);
@@ -274,6 +304,7 @@ void opselect(){
 	}
 	if (strcmp(skibidi, "exit") == 0){
 	    // break loop and exit
+	    chk_lock();
 	    shitaudio_fxdie(&bgm);
 	    shitaudio_stop(&bgm);
 	    shitaudio_destroy(&bgm);
@@ -283,10 +314,12 @@ void opselect(){
 	// bgm start pushed [10] to its limit which caused weird behaviour
 	// now skibidi is [64] so more headroom
 	if(strcmp(skibidi, "bgm start") == 0){
+		chk_lock();
 		shitaudio_cheap_replay(&bgm);
 	}
 	if(strcmp(skibidi, "bgm stop") == 0){
 		// won't destroy things like stop
+		chk_lock();
 		shitaudio_pause(&bgm);
 	}
 	if (strcmp(skibidi, "hmlala") == 0){
@@ -308,15 +341,10 @@ void opselect(){
 
 
 int main(){
+	printf("enter song name to play (with extension): ");
+	char songsel[1000]; tinput(songsel,sizeof(songsel));
 	// no more thread tomfoolery because dangerous
-	shitaudio_init(&bgm);
-	bgm.buffer = 0;
-	bgm.source = 0;
-	bgm.duration = 0.0f;
-	if (shitaudio_opus_genpcm(&bgm,"hachi2hoshimi.ogg") == 0){
-		shitaudio_gensource(&bgm);
-		shitaudio_reverb(&bgm);
-	}
+	pthread_create(&audioload,NULL,setup_audio,songsel);
 	printf("%s\n", title());
 	// name change?!?!?!
 	printf("welcome to totally awesum no3calc\n");

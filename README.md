@@ -1,27 +1,28 @@
 # shitdencalc
-magic sauce calculator with bgm, json update mechanism (cancelled TUI because not enough energy)\
-no JSON update mechanism because too complex.\
-now just focused on making it easier to port to other platforms.
+Magic calculator that isn't magic because yes.
 
 > [!NOTE]
-> Opus has stabilised after rewrite :D\
-> May consider Libtommath because it can go WASM\
-> Or just rewrite in JS with the same principles (but it can be tiring)\
-> No more noaudio builds because too lazy to segment my code properly\
-> OpenAL Soft instead of Cubeb because Mozilla's documentation is pain\
-> And added Licenses if not my shit is technically illegal
+> Made it so that you can load any audio (however not safe for big audio yet)\
+> Branding changed to NO3Calc because shitden is technically trademarked\
+> and my product does not match shitdencalc's functionality\
+> Windows release is now public because it stopped exploding.
 
 ## about the files
 - audio.c and audio.h handle background audio via OpenAL Soft and libopusfile (not cubeb sorry forgor update)
-- misc.c and misc.h handles title and help texts
+- misc.c and misc.h handles title, ANSI escape codes and help texts
 - main.c does the mathing because ues
 - hachi2hoshimi.ogg is the new audio requested from shitden!!
-- debug is just debug binary (linux64)
+- debug is just debug binary (linux64 is ./debug and windows is debug.exe)
 - compile.sh is the flags i use for clang (important if you want deterministic output)
 
 ## Extra Notes:
-- I didn't make it loop because it would be annoying and I would have to play around with threads and cause unsafe behaviours again.
-- you can technically replace the hachi2hoshimi.ogg or modify the source code to play another ogg/opus. (I won't stop you because I don't care)
+- windows releases are slower than linux because it is easier to iterate changes on linux.
+- fuck me, threads are back lol (for linux, pthreads hates me currently so windows will use blocking model)
+- may consider C++ or maybe not because it is cursed.
+- need to also add more functions and maybe even a new AST style input (so faster input, but will resemble gnu's bc which is bad)
+- gmp has precision issues rn with floats. gonna have to fix by changing into rational via auto-input detection (another reason to switch to AST model).
+- kotlin/JVM clone on the way because I need to learn Kotlin lol to port some good android apps to linux
+
 ## And as per standard procedure... (Licensing)
 This project is licensed under the GPL-3.0-or-later.  
 
